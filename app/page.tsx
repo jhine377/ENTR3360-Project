@@ -1,4 +1,6 @@
 import Link from "next/link";
+import AuthControls from "@/components/AuthControls";
+import RequireAuth from "@/components/RequireAuth";
 
 const projects = [
   {
@@ -82,7 +84,8 @@ const metrics = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
+    <RequireAuth>
+      <main className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-7xl px-6 py-10">
         {/* Header */}
         <div className="mb-10 flex flex-col gap-5 border-b border-slate-200 pb-8 md:flex-row md:items-center md:justify-between">
@@ -101,12 +104,16 @@ export default function Home() {
             </p>
           </div>
 
-          <Link
-            href="/opportunities"
-            className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
-          >
-            Explore Opportunities →
-          </Link>
+          <div className="flex flex-col items-stretch gap-3 sm:items-end">
+            <AuthControls />
+
+            <Link
+              href="/opportunities"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800"
+            >
+              Explore Opportunities →
+            </Link>
+          </div>
         </div>
 
         {/* Dataset notice */}
@@ -123,6 +130,7 @@ export default function Home() {
         <section className="mb-10">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-xl font-bold">Opportunity Overview</h2>
+
             <span className="text-sm text-slate-500">
               Canada &amp; United States
             </span>
@@ -203,6 +211,7 @@ export default function Home() {
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-bold">Featured Opportunities</h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 Select a project to review its development signals and
                 leadership information.
@@ -263,7 +272,8 @@ export default function Home() {
         <footer className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500">
           ENTR 3360 · MVP Prototype · Fictional demonstration data
         </footer>
-      </div>
+          </div>
     </main>
+    </RequireAuth>
   );
 }

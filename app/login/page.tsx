@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const { user, loading, signUp, signIn, signOut } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -18,10 +21,10 @@ export default function LoginPage() {
     const { error } = await signUp(email, password);
 
     if (error) {
-      setMessage(error);
-    } else {
-      setMessage("Account created successfully.");
-    }
+  setMessage(error);
+} else {
+  router.push("/");
+}
 
     setSubmitting(false);
   }
@@ -32,11 +35,11 @@ export default function LoginPage() {
 
     const { error } = await signIn(email, password);
 
-    if (error) {
-      setMessage(error);
-    } else {
-      setMessage("Signed in successfully.");
-    }
+   if (error) {
+  setMessage(error);
+} else {
+  router.push("/");
+}
 
     setSubmitting(false);
   }
