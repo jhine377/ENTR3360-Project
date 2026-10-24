@@ -6,21 +6,23 @@ import { supabase } from "@/lib/supabase";
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
 
+type Project = {
+  id: string;
+  project_name: string;
+  company_name: string;
+  country: string;
+  region: string;
+  project_type: string;
+  lifecycle_stage: string;
+  budget_status: string;
+  data_origin: string;
+};
+
 type SavedOpportunity = {
   id: string;
   project_id: string;
   saved_at: string;
-  projects: {
-    id: string;
-    project_name: string;
-    company_name: string;
-    country: string;
-    region: string;
-    project_type: string;
-    lifecycle_stage: string;
-    budget_status: string;
-    data_origin: string;
-  } | null;
+  projects: Project | Project[] | null;
 };
 
 export default function SavedOpportunitiesPage() {
@@ -34,6 +36,8 @@ export default function SavedOpportunitiesPage() {
     if (!user) {
       return;
     }
+
+    const userId = user.id;
 
     async function loadSaved() {
       setLoading(true);
@@ -59,7 +63,7 @@ export default function SavedOpportunitiesPage() {
           )
         `
         )
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("saved_at", { ascending: false });
 
       if (error) {
@@ -68,7 +72,7 @@ export default function SavedOpportunitiesPage() {
         return;
       }
 
-      setSaved((data as SavedOpportunity[]) ?? []);
+      setSaved((data ?? []) as SavedOpportunity[]);
       setLoading(false);
     }
 
@@ -84,6 +88,7 @@ export default function SavedOpportunitiesPage() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
                 Opportunity Intelligence Platform
               </p>
+
               <h1 className="mt-1 text-2xl font-bold">
                 My Saved Opportunities
               </h1>
@@ -112,7 +117,8 @@ export default function SavedOpportunitiesPage() {
 
           {error && (
             <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-6 text-red-800">
-              <strong>Unable to load saved opportunities:</strong> {error}
+              <strong>Unable to load saved opportunities:</strong>{" "}
+              {error}
             </div>
           )}
 
@@ -121,9 +127,10 @@ export default function SavedOpportunitiesPage() {
               <h2 className="text-xl font-bold">
                 No saved opportunities yet
               </h2>
+
               <p className="mt-2 text-slate-600">
-                Open an intelligence brief and use the Save Opportunity
-                button to add projects here.
+                Open an intelligence brief and use the Save
+                Opportunity button to add projects here.
               </p>
 
               <Link
@@ -138,7 +145,9 @@ export default function SavedOpportunitiesPage() {
           {!loading && !error && saved.length > 0 && (
             <section className="mt-8 space-y-4">
               {saved.map((item) => {
-                const project = item.projects;
+                const project = Array.isArray(item.projects)
+                  ? item.projects[0]
+                  : item.projects;
 
                 if (!project) return null;
 
@@ -157,12 +166,14 @@ export default function SavedOpportunitiesPage() {
 
                           <span
                             className={
-                              project.data_origin === "Public Reference"
+                              project.data_origin ===
+                              "Public Reference"
                                 ? "rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
                                 : "rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
                             }
                           >
-                            {project.data_origin === "Public Reference"
+                            {project.data_origin ===
+                            "Public Reference"
                               ? "Public Reference"
                               : "Synthetic Demo"}
                           </span>

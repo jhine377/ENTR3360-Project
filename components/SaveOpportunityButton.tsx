@@ -21,12 +21,14 @@ export default function SaveOpportunityButton({ projectId }: Props) {
       return;
     }
 
+    const userId = user.id;
+
     async function checkSaved() {
       const { data, error } = await supabase
         .from("saved_opportunities")
         .select("id")
         .eq("project_id", projectId)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (!error && data) {
@@ -44,6 +46,8 @@ export default function SaveOpportunityButton({ projectId }: Props) {
   async function handleSave() {
     if (!user) return;
 
+    const userId = user.id;
+
     setSubmitting(true);
 
     if (saved) {
@@ -51,7 +55,7 @@ export default function SaveOpportunityButton({ projectId }: Props) {
         .from("saved_opportunities")
         .delete()
         .eq("project_id", projectId)
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (!error) {
         setSaved(false);
@@ -61,7 +65,7 @@ export default function SaveOpportunityButton({ projectId }: Props) {
         .from("saved_opportunities")
         .insert({
           project_id: projectId,
-          user_id: user.id,
+          user_id: userId,
         });
 
       if (!error) {
