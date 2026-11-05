@@ -52,12 +52,12 @@ export default function LoginPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-12">
         <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white p-8 shadow-2xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-black text-white">E</div>
-            <div>
-              <p className="font-bold text-slate-950">EPCMst Intelligence</p>
-              <p className="text-xs text-slate-400">Opportunity platform</p>
-            </div>
+          <div className="flex items-center">
+            <img
+              src="/epcmst-logo.png"
+              alt="EPCMst"
+              className="h-11 w-auto object-contain"
+            />
           </div>
 
           <div className="mt-8 rounded-xl bg-emerald-50 p-4">
@@ -84,12 +84,12 @@ export default function LoginPage() {
     <main className="min-h-screen bg-slate-950 px-6 py-12">
       <div className="mx-auto grid min-h-[calc(100vh-6rem)] max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
         <section className="hidden text-white lg:block">
-          <div className="inline-flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-base font-black">E</div>
-            <div>
-              <p className="text-lg font-bold">EPCMst Intelligence</p>
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Opportunity platform</p>
-            </div>
+          <div className="inline-flex items-center">
+            <img
+              src="/epcmst-logo.png"
+              alt="EPCMst"
+              className="h-14 w-auto object-contain"
+            />
           </div>
 
           <h1 className="mt-10 max-w-xl text-5xl font-black leading-[1.05] tracking-[-0.04em]">
@@ -111,7 +111,11 @@ export default function LoginPage() {
 
         <section className="rounded-2xl border border-white/10 bg-white p-7 shadow-2xl sm:p-9">
           <div className="lg:hidden">
-            <p className="text-sm font-black text-blue-700">EPCMst Intelligence</p>
+            <img
+              src="/epcmst-logo.png"
+              alt="EPCMst"
+              className="h-10 w-auto object-contain"
+            />
           </div>
 
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Secure access</p>
