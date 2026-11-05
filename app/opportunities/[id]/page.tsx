@@ -249,15 +249,16 @@ export default function OpportunityBrief() {
       <main className="min-h-screen text-slate-900">
         <header className="bg-slate-950 text-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
-                Opportunity Intelligence Platform
-              </p>
-
-              <p className="mt-1 text-lg font-bold">
+            <Link href="/" className="flex items-center gap-4" aria-label="EPCMst Intelligence home">
+              <img
+                src="/epcmst-logo.png"
+                alt="EPCMst"
+                className="h-9 w-auto object-contain sm:h-10"
+              />
+              <span className="hidden border-l border-white/15 pl-4 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 sm:inline">
                 Project Intelligence Brief
-              </p>
-            </div>
+              </span>
+            </Link>
 
             <Link
               href="/opportunities"
