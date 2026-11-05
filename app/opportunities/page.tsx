@@ -31,7 +31,6 @@ type ProjectWithSignal = Project & {
 
 export default function OpportunitiesPage() {
   const { user } = useAuth();
-
   const [projects, setProjects] = useState<ProjectWithSignal[]>([]);
   const [country, setCountry] = useState("All Countries");
   const [type, setType] = useState("All Project Types");
@@ -39,9 +38,7 @@ export default function OpportunitiesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
     async function loadProjects() {
       setLoading(true);
@@ -49,20 +46,7 @@ export default function OpportunitiesPage() {
 
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
-        .select(
-          `
-          id,
-          project_name,
-          company_name,
-          country,
-          region,
-          project_type,
-          lifecycle_stage,
-          budget_status,
-          description,
-          data_origin
-        `
-        )
+        .select("id, project_name, company_name, country, region, project_type, lifecycle_stage, budget_status, description, data_origin")
         .order("project_name", { ascending: true });
 
       if (projectError) {
@@ -83,26 +67,18 @@ export default function OpportunitiesPage() {
       }
 
       const latestSignalByProject = new Map<string, string>();
-
       (signalData as ProjectSignal[] | null)?.forEach((signal) => {
         if (!latestSignalByProject.has(signal.project_id)) {
-          latestSignalByProject.set(
-            signal.project_id,
-            signal.signal_title
-          );
+          latestSignalByProject.set(signal.project_id, signal.signal_title);
         }
       });
 
-      const combinedProjects: ProjectWithSignal[] = (
-        (projectData as Project[] | null) ?? []
-      ).map((project) => ({
-        ...project,
-        latest_signal:
-          latestSignalByProject.get(project.id) ??
-          "No signal recorded",
-      }));
-
-      setProjects(combinedProjects);
+      setProjects(
+        (((projectData as Project[] | null) ?? []).map((project) => ({
+          ...project,
+          latest_signal: latestSignalByProject.get(project.id) ?? "No signal recorded",
+        })))
+      );
       setLoading(false);
     }
 
@@ -112,249 +88,185 @@ export default function OpportunitiesPage() {
   const filtered = useMemo(() => {
     return projects.filter(
       (project) =>
-        (country === "All Countries" ||
-          project.country === country) &&
-        (type === "All Project Types" ||
-          project.project_type === type)
+        (country === "All Countries" || project.country === country) &&
+        (type === "All Project Types" || project.project_type === type)
     );
   }, [projects, country, type]);
 
+  const filtersActive = country !== "All Countries" || type !== "All Project Types";
+
   return (
     <RequireAuth>
-      <main className="min-h-screen bg-slate-100 text-slate-900">
-        <header className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
-                Market Intelligence Platform
-              </p>
-
-              <h1 className="mt-1 text-2xl font-bold">
-                Opportunities
-              </h1>
-            </div>
-
-            <Link
-              className="text-sm font-semibold text-blue-700 hover:underline"
-              href="/"
-            >
-              ← Dashboard
+      <main className="min-h-screen text-slate-900">
+        <header className="bg-slate-950 text-white">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-black">E</div>
+              <div>
+                <p className="text-sm font-bold">EPCMst Intelligence</p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Opportunity platform</p>
+              </div>
             </Link>
+            <nav className="flex items-center gap-5 text-sm font-medium text-slate-300">
+              <Link href="/" className="hover:text-white">Dashboard</Link>
+              <Link href="/opportunities" className="text-white">Opportunities</Link>
+              <Link href="/saved" className="hidden hover:text-white sm:inline">Saved</Link>
+            </nav>
           </div>
         </header>
 
-        <div className="mx-auto max-w-7xl px-6 py-10">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Early-Stage Project Opportunities
-          </h2>
-
-          <p className="mt-3 max-w-3xl text-slate-600">
-            Review capital project opportunities and narrow the
-            market based on geography and project type. Project
-            records are supported by development signals stored in
-            the opportunity intelligence database.
-          </p>
-
-          <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-900">
-            <strong>Prototype dataset:</strong> This database
-            contains 40 opportunity records, including public
-            reference projects and synthetic demonstration data.
-            Public reference projects are included to test the
-            intelligence model against real-world project
-            lifecycles. This prototype does not provide live market
-            intelligence.
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-6 py-9">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Opportunity pipeline</p>
+            <div className="mt-2 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+              <div>
+                <h1 className="text-3xl font-black tracking-[-0.025em] text-slate-950 md:text-4xl">Early-stage project opportunities</h1>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                  Scan the market, narrow by geography and project type, then open a project intelligence brief for lifecycle, signal, and leadership context.
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-right">
+                <p className="text-2xl font-black text-slate-950">{filtered.length}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">visible opportunities</p>
+              </div>
+            </div>
           </div>
+        </section>
 
-          {/* Filters */}
-          <section
-            className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-            aria-label="Opportunity filters"
-          >
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Country
-                </span>
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+            <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Refine</p>
+                  <h2 className="mt-1 font-bold text-slate-950">Market filters</h2>
+                </div>
+                {filtersActive && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCountry("All Countries");
+                      setType("All Project Types");
+                    }}
+                    className="text-xs font-bold text-blue-700 hover:text-blue-800"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
 
-                <select
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-blue-600 focus:outline-none"
-                  value={country}
-                  onChange={(event) =>
-                    setCountry(event.target.value)
-                  }
-                >
-                  <option>All Countries</option>
-                  <option>Canada</option>
-                  <option>USA</option>
-                </select>
-              </label>
+              <div className="mt-6 space-y-5">
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Country</span>
+                  <select
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-600 focus:outline-none"
+                    value={country}
+                    onChange={(event) => setCountry(event.target.value)}
+                  >
+                    <option>All Countries</option>
+                    <option>Canada</option>
+                    <option>USA</option>
+                  </select>
+                </label>
 
-              <label className="block">
-                <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Project Type
-                </span>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-500">Project type</span>
+                  <select
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm focus:border-blue-600 focus:outline-none"
+                    value={type}
+                    onChange={(event) => setType(event.target.value)}
+                  >
+                    <option>All Project Types</option>
+                    <option>Pipeline</option>
+                    <option>Facility</option>
+                  </select>
+                </label>
+              </div>
 
-                <select
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-blue-600 focus:outline-none"
-                  value={type}
-                  onChange={(event) => setType(event.target.value)}
-                >
-                  <option>All Project Types</option>
-                  <option>Pipeline</option>
-                  <option>Facility</option>
-                </select>
-              </label>
-            </div>
+              <div className="mt-6 rounded-xl bg-blue-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Dataset note</p>
+                <p className="mt-2 text-xs leading-5 text-blue-900">
+                  Public-reference and synthetic records are clearly labeled. This prototype is not live market intelligence.
+                </p>
+              </div>
+            </aside>
 
-            <div className="mt-5 flex items-center justify-between gap-4 border-t border-slate-100 pt-5">
-              <p
-                aria-live="polite"
-                className="text-sm text-slate-600"
-              >
-                Showing{" "}
-                <strong className="text-slate-900">
-                  {filtered.length}
-                </strong>{" "}
-                {filtered.length === 1
-                  ? "opportunity"
-                  : "opportunities"}
-              </p>
+            <section aria-label="Project results">
+              {loading && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
+                  Loading opportunity intelligence…
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setCountry("All Countries");
-                  setType("All Project Types");
-                }}
-                className="text-sm font-semibold text-blue-700 hover:underline"
-              >
-                Clear filters
-              </button>
-            </div>
-          </section>
+              {error && (
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
+                  <strong>Unable to load opportunities:</strong> {error}
+                </div>
+              )}
 
-          {/* Loading */}
-          {loading && (
-            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600">
-              Loading opportunity intelligence...
-            </div>
-          )}
+              {!loading && !error && (
+                <div className="space-y-3">
+                  {filtered.map((project) => (
+                    <Link
+                      href={`/opportunities/${project.id}`}
+                      key={project.id}
+                      className="group block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                    >
+                      <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">{project.company_name}</span>
+                            <span
+                              className={
+                                project.data_origin === "Public Reference"
+                                  ? "rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700"
+                                  : "rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500"
+                              }
+                            >
+                              {project.data_origin === "Public Reference" ? "Public reference" : "Synthetic demo"}
+                            </span>
+                          </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
-              <strong>Unable to load opportunities:</strong>{" "}
-              {error}
-            </div>
-          )}
+                          <h3 className="mt-2 text-lg font-bold text-slate-950 group-hover:text-blue-700">{project.project_name}</h3>
+                          <p className="mt-1 text-sm text-slate-500">{project.region}, {project.country}</p>
+                          <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+                            <span className="font-semibold text-slate-800">Latest signal:</span> {project.latest_signal}
+                          </p>
+                        </div>
 
-          {/* Results */}
-          {!loading && !error && (
-            <section
-              className="mt-6 space-y-4"
-              aria-label="Project results"
-            >
-              {filtered.map((project) => (
-                <Link
-                  href={`/opportunities/${project.id}`}
-                  key={project.id}
-                  className="block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
-                >
-                  <div className="grid gap-6 md:grid-cols-[2fr_1fr_1.2fr_1fr_1.5fr] md:items-center">
-                    {/* Project */}
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                          {project.company_name}
-                        </p>
+                        <div className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:w-[430px]">
+                          <div className="rounded-xl bg-slate-50 px-3 py-3">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Type</p>
+                            <p className="mt-1 text-sm font-semibold text-slate-700">{project.project_type}</p>
+                          </div>
+                          <div className="rounded-xl bg-blue-50 px-3 py-3">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-blue-400">Stage</p>
+                            <p className="mt-1 text-sm font-semibold text-blue-800">{project.lifecycle_stage}</p>
+                          </div>
+                          <div className="col-span-2 rounded-xl bg-slate-50 px-3 py-3 sm:col-span-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Budget</p>
+                            <p className="mt-1 text-sm font-semibold text-slate-700">{project.budget_status}</p>
+                          </div>
+                        </div>
 
-                        <span
-                          className={
-                            project.data_origin ===
-                            "Public Reference"
-                              ? "rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"
-                              : "rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600"
-                          }
-                        >
-                          {project.data_origin ===
-                          "Public Reference"
-                            ? "Public Reference"
-                            : "Synthetic Demo"}
-                        </span>
+                        <span className="shrink-0 text-sm font-bold text-blue-700">Open brief →</span>
                       </div>
+                    </Link>
+                  ))}
 
-                      <h3 className="mt-2 text-lg font-semibold text-slate-900">
-                        {project.project_name}
-                      </h3>
-
-                      <p className="mt-1 text-sm text-slate-500">
-                        {project.region}, {project.country}
-                      </p>
+                  {filtered.length === 0 && (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                      <h3 className="font-bold text-slate-900">No matches found</h3>
+                      <p className="mt-2 text-sm text-slate-500">Try a different country or project type.</p>
                     </div>
-
-                    {/* Type */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
-                        Type
-                      </p>
-
-                      <p className="mt-1 text-sm">
-                        {project.project_type}
-                      </p>
-                    </div>
-
-                    {/* Stage */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
-                        Lifecycle Stage
-                      </p>
-
-                      <p className="mt-1 text-sm">
-                        {project.lifecycle_stage}
-                      </p>
-                    </div>
-
-                    {/* Budget */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
-                        Budget
-                      </p>
-
-                      <p className="mt-1 text-sm">
-                        {project.budget_status}
-                      </p>
-                    </div>
-
-                    {/* Signal */}
-                    <div>
-                      <p className="text-xs font-semibold uppercase text-slate-400">
-                        Latest Signal
-                      </p>
-
-                      <p className="mt-1 text-sm">
-                        {project.latest_signal}
-                      </p>
-
-                      <span className="mt-2 inline-block text-xs font-semibold text-blue-700">
-                        View intelligence brief →
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-
-              {filtered.length === 0 && (
-                <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600">
-                  No opportunities match those filters. Try
-                  another combination.
+                  )}
                 </div>
               )}
             </section>
-          )}
+          </div>
 
-          <footer className="mt-10 border-t border-slate-200 pt-6 text-sm text-slate-500">
-            ENTR 3360 · Opportunity Intelligence Prototype ·
-            Supabase-backed demonstration dataset
+          <footer className="mt-10 border-t border-slate-200 py-6 text-xs text-slate-400">
+            ENTR 3360 · EPCMst Opportunity Intelligence · Supabase-backed prototype
           </footer>
         </div>
       </main>
