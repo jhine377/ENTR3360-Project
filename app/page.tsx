@@ -112,12 +112,12 @@ export default function Home() {
       <main className="min-h-screen text-slate-900">
         <header className="bg-slate-950 text-white">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-black">E</div>
-              <div>
-                <p className="text-sm font-bold">EPCMst Intelligence</p>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400">Opportunity platform</p>
-              </div>
+            <Link href="/" className="flex items-center" aria-label="EPCMst Intelligence home">
+              <img
+                src="/epcmst-logo.png"
+                alt="EPCMst"
+                className="h-9 w-auto object-contain sm:h-10"
+              />
             </Link>
 
             <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 lg:flex">
