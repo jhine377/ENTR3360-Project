@@ -31,12 +31,7 @@ export default function SaveOpportunityButton({ projectId }: Props) {
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (!error && data) {
-        setSaved(true);
-      } else {
-        setSaved(false);
-      }
-
+      setSaved(!error && Boolean(data));
       setLoading(false);
     }
 
@@ -47,7 +42,6 @@ export default function SaveOpportunityButton({ projectId }: Props) {
     if (!user) return;
 
     const userId = user.id;
-
     setSubmitting(true);
 
     if (saved) {
@@ -80,9 +74,9 @@ export default function SaveOpportunityButton({ projectId }: Props) {
     return (
       <button
         disabled
-        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-500"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-400"
       >
-        Checking saved status...
+        Checking…
       </button>
     );
   }
@@ -94,15 +88,11 @@ export default function SaveOpportunityButton({ projectId }: Props) {
       disabled={submitting}
       className={
         saved
-          ? "rounded-lg bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-200 disabled:opacity-50"
-          : "rounded-lg border border-blue-700 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+          ? "rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100 disabled:opacity-50"
+          : "rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50"
       }
     >
-      {submitting
-        ? "Saving..."
-        : saved
-        ? "✓ Saved Opportunity"
-        : "Save Opportunity"}
+      {submitting ? "Updating…" : saved ? "✓ Saved" : "＋ Save opportunity"}
     </button>
   );
 }
