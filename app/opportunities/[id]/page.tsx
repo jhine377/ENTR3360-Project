@@ -246,9 +246,9 @@ export default function OpportunityBrief() {
 
   return (
     <RequireAuth>
-      <main className="min-h-screen bg-slate-50 text-slate-900">
-        <header className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-6">
+      <main className="min-h-screen text-slate-900">
+        <header className="bg-slate-950 text-white">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
                 Opportunity Intelligence Platform
@@ -261,14 +261,14 @@ export default function OpportunityBrief() {
 
             <Link
               href="/opportunities"
-              className="text-sm font-semibold text-blue-700 hover:underline"
+              className="text-sm font-semibold text-slate-300 hover:text-white"
             >
               ← All opportunities
             </Link>
           </div>
         </header>
 
-        <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mx-auto max-w-6xl px-6 py-8">
           {loading && (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-600">
               Loading project intelligence...
@@ -317,7 +317,7 @@ export default function OpportunityBrief() {
               </div>
 
               {/* Project summary */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -338,7 +338,7 @@ export default function OpportunityBrief() {
                       </span>
                     </div>
 
-                    <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+                    <h1 className="mt-3 text-3xl font-black tracking-[-0.03em] text-slate-950 md:text-4xl">
                       {project.project_name}
                     </h1>
                   </div>
@@ -360,7 +360,7 @@ export default function OpportunityBrief() {
                   ].map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-700"
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 font-semibold text-slate-600"
                     >
                       {tag}
                     </span>
@@ -369,7 +369,7 @@ export default function OpportunityBrief() {
               </div>
 
               {/* Lifecycle */}
-              <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-bold">
@@ -454,8 +454,8 @@ export default function OpportunityBrief() {
               </section>
 
               {/* Readiness + signals */}
-              <div className="mt-7 grid gap-7 lg:grid-cols-[1.7fr_0.8fr]">
-                <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <div className="mt-6 grid gap-6 lg:grid-cols-[1.7fr_0.8fr]">
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-bold">
@@ -522,7 +522,7 @@ export default function OpportunityBrief() {
                 </section>
 
                 {/* Readiness */}
-                <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                     Opportunity Readiness
                   </p>
@@ -538,7 +538,7 @@ export default function OpportunityBrief() {
 
                   <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-blue-700"
+                      className="h-full rounded-full bg-blue-600"
                       style={{
                         width: `${(readiness.score / 5) * 100}%`,
                       }}
@@ -561,7 +561,7 @@ export default function OpportunityBrief() {
               </div>
 
               {/* Leadership */}
-              <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-bold">
@@ -637,7 +637,7 @@ export default function OpportunityBrief() {
               </section>
 
               {/* Next Steps */}
-              <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+              <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7">
                 <h2 className="text-xl font-bold">
                   Intelligence Interpretation & Next Steps
                 </h2>
@@ -663,14 +663,14 @@ export default function OpportunityBrief() {
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href="/opportunities"
-                  className="rounded-lg bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800"
+                  className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700"
                 >
                   ← Back to opportunities
                 </Link>
 
                 <Link
                   href="/"
-                  className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50"
                 >
                   Dashboard
                 </Link>
