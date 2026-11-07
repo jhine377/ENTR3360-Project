@@ -155,17 +155,29 @@ export default function OpportunityBrief() {
   }, [id, user]);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("epcmst-linkedin-profiles");
-      if (stored) {
-        setLinkedinProfiles(JSON.parse(stored));
-      }
-    } catch {
-      // Ignore malformed or unavailable local storage.
-    }
-  }, []);
+    if (!user) return;
 
-  function saveLinkedinProfile(contactId: string) {
+    async function loadLinkedinProfiles() {
+      const { data, error } = await supabase
+        .from("user_contact_links")
+        .select("contact_id, linkedin_url")
+        .eq("user_id", user.id);
+
+      if (error) return;
+
+      const profiles: Record<string, string> = {};
+      (data ?? []).forEach((row) => {
+        profiles[row.contact_id] = row.linkedin_url;
+      });
+      setLinkedinProfiles(profiles);
+    }
+
+    loadLinkedinProfiles();
+  }, [user]);
+
+  async function saveLinkedinProfile(contactId: string) {
+    if (!user) return;
+
     const url = (linkedinDrafts[contactId] ?? "").trim();
 
     if (!/^https?:\/\/(www\.)?linkedin\.com\/in\//i.test(url)) {
@@ -173,16 +185,45 @@ export default function OpportunityBrief() {
       return;
     }
 
-    const next = { ...linkedinProfiles, [contactId]: url };
-    setLinkedinProfiles(next);
-    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+    const { error } = await supabase
+      .from("user_contact_links")
+      .upsert(
+        {
+          user_id: user.id,
+          contact_id: contactId,
+          linkedin_url: url,
+          confirmed_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,contact_id" }
+      );
+
+    if (error) {
+      window.alert("Unable to save this LinkedIn profile yet.");
+      return;
+    }
+
+    setLinkedinProfiles((current) => ({ ...current, [contactId]: url }));
   }
 
-  function clearLinkedinProfile(contactId: string) {
-    const next = { ...linkedinProfiles };
-    delete next[contactId];
-    setLinkedinProfiles(next);
-    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+  async function clearLinkedinProfile(contactId: string) {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("user_contact_links")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("contact_id", contactId);
+
+    if (error) {
+      window.alert("Unable to remove this LinkedIn profile yet.");
+      return;
+    }
+
+    setLinkedinProfiles((current) => {
+      const next = { ...current };
+      delete next[contactId];
+      return next;
+    });
     setLinkedinDrafts((current) => ({ ...current, [contactId]: "" }));
   }
 
