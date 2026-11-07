@@ -1,7 +1,10 @@
 -- EPCMst pursuit workflow upgrade
 -- 1) Add a user-specific pursuit stage to saved opportunities
 alter table if exists public.saved_opportunities
-  add column if not exists pursuit_status text not null default 'Monitoring';
+  add column if not exists pursuit_status text not null default 'Saved';
+
+alter table public.saved_opportunities
+  alter column pursuit_status set default 'Saved';
 
 do $$
 begin
@@ -12,7 +15,7 @@ begin
   ) then
     alter table public.saved_opportunities
       add constraint saved_opportunities_pursuit_status_check
-      check (pursuit_status in ('Monitoring','Researching','Outreach','Active Pursuit'));
+      check (pursuit_status in ('Saved','Monitoring','Researching','Outreach','Active Pursuit'));
   end if;
 end $$;
 
