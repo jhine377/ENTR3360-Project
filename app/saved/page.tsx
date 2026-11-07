@@ -35,6 +35,36 @@ const pursuitStatuses: PursuitStatus[] = [
   "Active Pursuit",
 ];
 
+const pursuitStatusMeta: Record<
+  PursuitStatus,
+  { icon: string; description: string; badge: string; panel: string }
+> = {
+  Monitoring: {
+    icon: "◉",
+    description: "Watching for stronger project signals before taking action.",
+    badge: "border-slate-200 bg-slate-100 text-slate-700",
+    panel: "border-slate-200 bg-slate-50",
+  },
+  Researching: {
+    icon: "⌕",
+    description: "Validating scope, leadership, timing, and commercial fit.",
+    badge: "border-blue-200 bg-blue-50 text-blue-700",
+    panel: "border-blue-100 bg-blue-50/60",
+  },
+  Outreach: {
+    icon: "↗",
+    description: "Preparing or making contact with project stakeholders.",
+    badge: "border-amber-200 bg-amber-50 text-amber-800",
+    panel: "border-amber-100 bg-amber-50/60",
+  },
+  "Active Pursuit": {
+    icon: "◆",
+    description: "Actively pursuing the opportunity with defined next actions.",
+    badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    panel: "border-emerald-100 bg-emerald-50/60",
+  },
+};
+
 export default function SavedOpportunitiesPage() {
   const { user } = useAuth();
   const [saved, setSaved] = useState<SavedOpportunity[]>([]);
@@ -201,25 +231,54 @@ export default function SavedOpportunitiesPage() {
                         </div>
                       </div>
 
-                      <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Pursuit status</p>
-                          <p className="mt-1 text-sm text-slate-500">Move this opportunity through your BD workflow.</p>
-                        </div>
-                        <select
-                          value={item.pursuit_status ?? "Monitoring"}
-                          onChange={(event) =>
-                            updatePursuitStatus(item.id, event.target.value as PursuitStatus)
-                          }
-                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        >
-                          {pursuitStatuses.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      {(() => {
+                        const status = item.pursuit_status ?? "Monitoring";
+                        const meta = pursuitStatusMeta[status];
+
+                        return (
+                          <div className={`mt-5 rounded-xl border p-4 ${meta.panel}`}>
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="flex items-start gap-3">
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg font-black ${meta.badge}`}>
+                                  {meta.icon}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                                    Pursuit status
+                                  </p>
+                                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                                    <span className={`rounded-full border px-2.5 py-1 text-xs font-bold ${meta.badge}`}>
+                                      {status}
+                                    </span>
+                                  </div>
+                                  <p className="mt-2 text-sm leading-5 text-slate-600">
+                                    {meta.description}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <label className="shrink-0">
+                                <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                                  Update stage
+                                </span>
+                                <select
+                                  value={status}
+                                  onChange={(event) =>
+                                    updatePursuitStatus(item.id, event.target.value as PursuitStatus)
+                                  }
+                                  className="min-w-44 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                >
+                                  {pursuitStatuses.map((option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
