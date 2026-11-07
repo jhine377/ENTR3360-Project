@@ -166,9 +166,11 @@ export default function OpportunityBrief() {
       if (error) return;
 
       const profiles: Record<string, string> = {};
-      (data ?? []).forEach((row) => {
-        profiles[row.contact_id] = row.linkedin_url;
-      });
+      ((data ?? []) as Array<{ contact_id: string; linkedin_url: string }>).forEach(
+        (row) => {
+          profiles[row.contact_id] = row.linkedin_url;
+        }
+      );
       setLinkedinProfiles(profiles);
     }
 
