@@ -156,12 +156,13 @@ export default function OpportunityBrief() {
 
   useEffect(() => {
     if (!user) return;
+    const userId = user.id;
 
     async function loadLinkedinProfiles() {
       const { data, error } = await supabase
         .from("user_contact_links")
         .select("contact_id, linkedin_url")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (error) return;
 
