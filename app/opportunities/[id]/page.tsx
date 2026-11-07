@@ -60,6 +60,8 @@ export default function OpportunityBrief() {
   const [project, setProject] = useState<Project | null>(null);
   const [signals, setSignals] = useState<Signal[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [linkedinProfiles, setLinkedinProfiles] = useState<Record<string, string>>({});
+  const [linkedinDrafts, setLinkedinDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -151,6 +153,38 @@ export default function OpportunityBrief() {
 
     loadOpportunity();
   }, [id, user]);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("epcmst-linkedin-profiles");
+      if (stored) {
+        setLinkedinProfiles(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore malformed or unavailable local storage.
+    }
+  }, []);
+
+  function saveLinkedinProfile(contactId: string) {
+    const url = (linkedinDrafts[contactId] ?? "").trim();
+
+    if (!/^https?:\/\/(www\.)?linkedin\.com\/in\//i.test(url)) {
+      window.alert("Paste a LinkedIn profile URL that starts with https://www.linkedin.com/in/");
+      return;
+    }
+
+    const next = { ...linkedinProfiles, [contactId]: url };
+    setLinkedinProfiles(next);
+    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+  }
+
+  function clearLinkedinProfile(contactId: string) {
+    const next = { ...linkedinProfiles };
+    delete next[contactId];
+    setLinkedinProfiles(next);
+    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+    setLinkedinDrafts((current) => ({ ...current, [contactId]: "" }));
+  }
 
   const currentStageIndex = useMemo(() => {
     if (!project) return -1;
@@ -626,17 +660,72 @@ export default function OpportunityBrief() {
                           </p>
                         )}
 
-                        <a
-                          href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(
-                            `${contact.contact_name} ${contact.organization}`
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
-                          aria-label={`Find ${contact.contact_name} on LinkedIn`}
-                        >
-                          Find on LinkedIn →
-                        </a>
+                        <div className="mt-4 border-t border-slate-200 pt-4">
+                          {linkedinProfiles[contact.id] ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <a
+                                href={linkedinProfiles[contact.id]}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                              >
+                                Open LinkedIn Profile →
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => clearLinkedinProfile(contact.id)}
+                                className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                              >
+                                Change profile
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <a
+                                href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(
+                                  `${contact.contact_name} ${contact.role_title} ${contact.organization}`
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
+                                aria-label={`Find ${contact.contact_name} on LinkedIn`}
+                              >
+                                Find on LinkedIn →
+                              </a>
+
+                              <div>
+                                <label
+                                  htmlFor={`linkedin-${contact.id}`}
+                                  className="text-xs font-semibold text-slate-500"
+                                >
+                                  Found the right person? Paste their profile URL:
+                                </label>
+                                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                                  <input
+                                    id={`linkedin-${contact.id}`}
+                                    type="url"
+                                    value={linkedinDrafts[contact.id] ?? ""}
+                                    onChange={(event) =>
+                                      setLinkedinDrafts((current) => ({
+                                        ...current,
+                                        [contact.id]: event.target.value,
+                                      }))
+                                    }
+                                    placeholder="https://www.linkedin.com/in/..."
+                                    className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => saveLinkedinProfile(contact.id)}
+                                    className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                                  >
+                                    Confirm profile
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
