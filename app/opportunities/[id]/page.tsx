@@ -711,8 +711,9 @@ export default function OpportunityBrief() {
                                 href={linkedinProfiles[contact.id]}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-900/10 transition hover:-translate-y-0.5 hover:bg-[#004182] hover:shadow-md"
                               >
+                                <span className="flex h-5 w-5 items-center justify-center rounded bg-white text-[11px] font-black text-[#0A66C2]">in</span>
                                 Open LinkedIn Profile →
                               </a>
                               <button
@@ -731,10 +732,11 @@ export default function OpportunityBrief() {
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
-                                aria-label={`Find ${contact.contact_name} on LinkedIn`}
+                                className="inline-flex items-center gap-2 rounded-xl border border-[#0A66C2]/25 bg-[#0A66C2]/5 px-4 py-2.5 text-sm font-bold text-[#0A66C2] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/10 hover:shadow-md"
+                                aria-label={`Research ${contact.contact_name} on LinkedIn`}
                               >
-                                Find on LinkedIn →
+                                <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0A66C2] text-[11px] font-black text-white">in</span>
+                                Research on LinkedIn →
                               </a>
 
                               <div>
