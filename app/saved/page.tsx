@@ -290,44 +290,45 @@ export default function SavedOpportunitiesPage() {
                                     </div>
                                   </div>
 
-                                  <div className={`mt-5 rounded-xl border p-4 ${groupMeta.panel}`}>
-                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                      <div className="flex items-start gap-3">
-                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-lg font-black ${groupMeta.badge}`}>
-                                          {groupMeta.icon}
-                                        </div>
-                                        <div>
-                                          <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                                            Current workflow stage
-                                          </p>
-                                          <span className={`mt-1 inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${groupMeta.badge}`}>
-                                            {groupStatus}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      <label className="shrink-0">
-                                        <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                                          Move to
-                                        </span>
-                                        <select
-                                          value={groupStatus}
-                                          onChange={(event) =>
-                                            updatePursuitStatus(
-                                              item.id,
-                                              event.target.value as PursuitStatus
-                                            )
-                                          }
-                                          className="min-w-44 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        >
-                                          {pursuitStatuses.map((option) => (
-                                            <option key={option} value={option}>
-                                              {option}
-                                            </option>
-                                          ))}
-                                        </select>
-                                      </label>
+                                  <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
+                                    <div>
+                                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                                        Next action
+                                      </p>
+                                      <p className="mt-1 text-sm text-slate-600">
+                                        {groupStatus === "Saved"
+                                          ? "Review the opportunity and decide whether it should enter the pursuit workflow."
+                                          : groupStatus === "Monitoring"
+                                          ? "Watch for stronger project, funding, leadership, or regulatory signals."
+                                          : groupStatus === "Researching"
+                                          ? "Validate project scope, timing, key stakeholders, and commercial fit."
+                                          : groupStatus === "Outreach"
+                                          ? "Prepare or complete stakeholder outreach and capture what you learn."
+                                          : "Advance the opportunity with defined BD actions and follow-up."}
+                                      </p>
                                     </div>
+
+                                    <label className="shrink-0">
+                                      <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                                        Move to
+                                      </span>
+                                      <select
+                                        value={groupStatus}
+                                        onChange={(event) =>
+                                          updatePursuitStatus(
+                                            item.id,
+                                            event.target.value as PursuitStatus
+                                          )
+                                        }
+                                        className="min-w-44 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 shadow-sm outline-none transition hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                      >
+                                        {pursuitStatuses.map((option) => (
+                                          <option key={option} value={option}>
+                                            {option}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </label>
                                   </div>
                                 </div>
                               );
