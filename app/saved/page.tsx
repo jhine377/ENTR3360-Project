@@ -85,11 +85,13 @@ export default function SavedOpportunitiesPage() {
   }, [user]);
 
   async function updatePursuitStatus(id: string, pursuit_status: PursuitStatus) {
+    if (!user) return;
+
     const { error } = await supabase
       .from("saved_opportunities")
       .update({ pursuit_status })
       .eq("id", id)
-      .eq("user_id", user?.id);
+      .eq("user_id", user.id);
 
     if (error) {
       setError(error.message);
