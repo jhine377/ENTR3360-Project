@@ -155,17 +155,32 @@ export default function OpportunityBrief() {
   }, [id, user]);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("epcmst-linkedin-profiles");
-      if (stored) {
-        setLinkedinProfiles(JSON.parse(stored));
-      }
-    } catch {
-      // Ignore malformed or unavailable local storage.
-    }
-  }, []);
+    if (!user) return;
+    const userId = user.id;
 
-  function saveLinkedinProfile(contactId: string) {
+    async function loadLinkedinProfiles() {
+      const { data, error } = await supabase
+        .from("user_contact_links")
+        .select("contact_id, linkedin_url")
+        .eq("user_id", userId);
+
+      if (error) return;
+
+      const profiles: Record<string, string> = {};
+      ((data ?? []) as Array<{ contact_id: string; linkedin_url: string }>).forEach(
+        (row) => {
+          profiles[row.contact_id] = row.linkedin_url;
+        }
+      );
+      setLinkedinProfiles(profiles);
+    }
+
+    loadLinkedinProfiles();
+  }, [user]);
+
+  async function saveLinkedinProfile(contactId: string) {
+    if (!user) return;
+
     const url = (linkedinDrafts[contactId] ?? "").trim();
 
     if (!/^https?:\/\/(www\.)?linkedin\.com\/in\//i.test(url)) {
@@ -173,16 +188,45 @@ export default function OpportunityBrief() {
       return;
     }
 
-    const next = { ...linkedinProfiles, [contactId]: url };
-    setLinkedinProfiles(next);
-    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+    const { error } = await supabase
+      .from("user_contact_links")
+      .upsert(
+        {
+          user_id: user.id,
+          contact_id: contactId,
+          linkedin_url: url,
+          confirmed_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,contact_id" }
+      );
+
+    if (error) {
+      window.alert("Unable to save this LinkedIn profile yet.");
+      return;
+    }
+
+    setLinkedinProfiles((current) => ({ ...current, [contactId]: url }));
   }
 
-  function clearLinkedinProfile(contactId: string) {
-    const next = { ...linkedinProfiles };
-    delete next[contactId];
-    setLinkedinProfiles(next);
-    window.localStorage.setItem("epcmst-linkedin-profiles", JSON.stringify(next));
+  async function clearLinkedinProfile(contactId: string) {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("user_contact_links")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("contact_id", contactId);
+
+    if (error) {
+      window.alert("Unable to remove this LinkedIn profile yet.");
+      return;
+    }
+
+    setLinkedinProfiles((current) => {
+      const next = { ...current };
+      delete next[contactId];
+      return next;
+    });
     setLinkedinDrafts((current) => ({ ...current, [contactId]: "" }));
   }
 
@@ -667,8 +711,9 @@ export default function OpportunityBrief() {
                                 href={linkedinProfiles[contact.id]}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-blue-900/10 transition hover:-translate-y-0.5 hover:bg-[#004182] hover:shadow-md"
                               >
+                                <span className="flex h-5 w-5 items-center justify-center rounded bg-white text-[11px] font-black text-[#0A66C2]">in</span>
                                 Open LinkedIn Profile →
                               </a>
                               <button
@@ -687,10 +732,11 @@ export default function OpportunityBrief() {
                                 )}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
-                                aria-label={`Find ${contact.contact_name} on LinkedIn`}
+                                className="inline-flex items-center gap-2 rounded-xl border border-[#0A66C2]/25 bg-[#0A66C2]/5 px-4 py-2.5 text-sm font-bold text-[#0A66C2] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0A66C2]/40 hover:bg-[#0A66C2]/10 hover:shadow-md"
+                                aria-label={`Research ${contact.contact_name} on LinkedIn`}
                               >
-                                Find on LinkedIn →
+                                <span className="flex h-5 w-5 items-center justify-center rounded bg-[#0A66C2] text-[11px] font-black text-white">in</span>
+                                Research on LinkedIn →
                               </a>
 
                               <div>
