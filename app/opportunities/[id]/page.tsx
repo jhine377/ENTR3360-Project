@@ -625,6 +625,18 @@ export default function OpportunityBrief() {
                             {contact.involvement_status}
                           </p>
                         )}
+
+                        <a
+                          href={`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(
+                            `${contact.contact_name} ${contact.organization}`
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-50"
+                          aria-label={`Find ${contact.contact_name} on LinkedIn`}
+                        >
+                          Find on LinkedIn →
+                        </a>
                       </div>
                     ))}
                   </div>
