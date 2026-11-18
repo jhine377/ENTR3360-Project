@@ -10,6 +10,7 @@ type SerperResult = {
 };
 
 type DiscoveryResult = {
+  source_id: string;
   title: string;
   url: string;
   snippet: string;
@@ -191,7 +192,8 @@ export async function POST(request: Request) {
           .filter((result) => result.title && result.link)
           .slice(0, 8)
           .map(
-            (result): DiscoveryResult => ({
+            (result) => ({
+              source_id: "",
               title: result.title ?? "Untitled result",
               url: result.link ?? "",
               snippet: result.snippet ?? "",
@@ -211,7 +213,12 @@ export async function POST(request: Request) {
       }
     });
 
-    const results = Array.from(deduplicated.values()).slice(0, 30);
+    const results = Array.from(deduplicated.values())
+      .slice(0, 30)
+      .map((result, index) => ({
+        ...result,
+        source_id: `source_${index + 1}`,
+      }));
 
     return NextResponse.json({
       generated_at: new Date().toISOString(),
