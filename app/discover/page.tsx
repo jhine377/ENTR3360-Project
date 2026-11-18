@@ -441,7 +441,7 @@ export default function DiscoverPage() {
               <div className="flex flex-wrap gap-3">
                 {data && (
                   <button
-                    onClick={qualifyWithAI}
+                    onClick={() => qualifyWithAI(false)}
                     disabled={qualifying || loading}
                     className="rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -449,7 +449,7 @@ export default function DiscoverPage() {
                   </button>
                 )}
                 <button
-                  onClick={runDiscovery}
+                  onClick={() => runDiscovery(false)}
                   disabled={loading || qualifying || !session}
                   className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
