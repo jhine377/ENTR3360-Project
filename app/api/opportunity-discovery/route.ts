@@ -184,6 +184,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      process.env.VERCEL_ENV !== "production" &&
+      request.headers.get("x-assignment-failure") === "serper"
+    ) {
+      throw new Error("Simulated Serper failure for Assignment 5 evidence.");
+    }
+
     const laneResponses = await Promise.all(
       discoveryLanes.map(async (lane) => {
         const data = await searchSerper(lane.query);
