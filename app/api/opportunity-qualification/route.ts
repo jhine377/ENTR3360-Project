@@ -197,6 +197,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      process.env.VERCEL_ENV !== "production" &&
+      request.headers.get("x-assignment-failure") === "ai"
+    ) {
+      throw new Error("Simulated AI failure for Assignment 5 evidence.");
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
