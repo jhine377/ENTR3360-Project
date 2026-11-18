@@ -122,6 +122,7 @@ export default function Home() {
 
             <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 lg:flex">
               <Link href="/" className="text-white">Dashboard</Link>
+              <Link href="/discover" className="hover:text-white">Discovery</Link>
               <Link href="/opportunities" className="hover:text-white">Opportunities</Link>
               <Link href="/saved" className="hover:text-white">Saved</Link>
             </nav>
@@ -149,8 +150,8 @@ export default function Home() {
                 <Link href="/saved" className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-slate-400 hover:bg-slate-50">
                   Saved opportunities
                 </Link>
-                <Link href="/opportunities" className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700">
-                  Explore opportunities →
+                <Link href="/discover" className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700">
+                  Live discovery →
                 </Link>
               </div>
             </div>
