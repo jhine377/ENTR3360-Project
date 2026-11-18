@@ -269,6 +269,7 @@ ${JSON.stringify(results, null, 2)}
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          // Luna keeps this focused classification workflow inexpensive.
           model: "gpt-6-luna",
           input: prompt,
           max_output_tokens: 2200,
