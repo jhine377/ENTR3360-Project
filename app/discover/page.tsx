@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -120,6 +120,35 @@ export default function DiscoverPage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [reviewDecisions, setReviewDecisions] = useState<Record<string, "Approved" | "Dismissed">>({});
   const [reviewError, setReviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const userId = session.user.id;
+
+    async function loadReviewDecisions() {
+      const { data, error } = await supabase
+        .from("discovery_candidate_reviews")
+        .select("candidate_key, decision")
+        .eq("user_id", userId);
+
+      if (error) {
+        setReviewError(error.message);
+        return;
+      }
+
+      const next: Record<string, "Approved" | "Dismissed"> = {};
+      (data ?? []).forEach((row) => {
+        if (row.decision === "Approved" || row.decision === "Dismissed") {
+          next[row.candidate_key] = row.decision;
+        }
+      });
+
+      setReviewDecisions(next);
+    }
+
+    loadReviewDecisions();
+  }, [session?.user?.id]);
 
   async function runDiscovery() {
     if (!session?.access_token) return;
@@ -263,6 +292,20 @@ export default function DiscoverPage() {
     }
 
     setReviewDecisions((current) => ({ ...current, [key]: decision }));
+  }
+
+  function evidenceLabel(source: DiscoveryResult) {
+    const title = source.title.trim();
+    const dateOnly = /^(?:[A-Z]+\s+\d{1,2},\s+\d{4}|\d{4}-\d{2}-\d{2})$/i.test(title);
+
+    if (!dateOnly) return title;
+
+    try {
+      const hostname = new URL(source.url).hostname.replace(/^www\./, "");
+      return `${hostname} source`;
+    } catch {
+      return "View supporting source";
+    }
   }
 
   const sourceById = useMemo(() => {
@@ -510,7 +553,7 @@ export default function DiscoverPage() {
                                     rel="noreferrer"
                                     className="block rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:border-blue-200 hover:bg-blue-50"
                                   >
-                                    {source.title} →
+                                    {evidenceLabel(source)} →
                                   </a>
                                 );
                               })}
