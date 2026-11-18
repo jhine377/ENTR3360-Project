@@ -119,6 +119,14 @@ export default function DiscoverPage() {
   const [error, setError] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
   const [reviewDecisions, setReviewDecisions] = useState<Record<string, "Approved" | "Dismissed">>({});
+  const [reviewRows, setReviewRows] = useState<Array<{
+    candidate_key: string;
+    company_name: string;
+    location: string;
+    supporting_source_ids: string[];
+    supporting_source_urls: string[];
+    decision: "Approved" | "Dismissed";
+  }>>([]);
   const [reviewError, setReviewError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -129,7 +137,7 @@ export default function DiscoverPage() {
     async function loadReviewDecisions() {
       const { data, error } = await supabase
         .from("discovery_candidate_reviews")
-        .select("candidate_key, decision")
+        .select("candidate_key, company_name, location, supporting_source_ids, supporting_source_urls, decision")
         .eq("user_id", userId);
 
       if (error) {
@@ -138,13 +146,35 @@ export default function DiscoverPage() {
       }
 
       const next: Record<string, "Approved" | "Dismissed"> = {};
+      const rows: Array<{
+        candidate_key: string;
+        company_name: string;
+        location: string;
+        supporting_source_ids: string[];
+        supporting_source_urls: string[];
+        decision: "Approved" | "Dismissed";
+      }> = [];
+
       (data ?? []).forEach((row) => {
         if (row.decision === "Approved" || row.decision === "Dismissed") {
           next[row.candidate_key] = row.decision;
+          rows.push({
+            candidate_key: row.candidate_key,
+            company_name: row.company_name ?? "",
+            location: row.location ?? "",
+            supporting_source_ids: Array.isArray(row.supporting_source_ids)
+              ? row.supporting_source_ids
+              : [],
+            supporting_source_urls: Array.isArray(row.supporting_source_urls)
+              ? row.supporting_source_urls
+              : [],
+            decision: row.decision,
+          });
         }
       });
 
       setReviewDecisions(next);
+      setReviewRows(rows);
     }
 
     loadReviewDecisions();
@@ -254,6 +284,48 @@ export default function DiscoverPage() {
       .replace(/[^a-z0-9|]+/g, "-");
   }
 
+  function candidateSourceUrls(candidate: Candidate) {
+    return candidate.supporting_source_ids
+      .map((sourceId) => sourceById.get(sourceId)?.url)
+      .filter((url): url is string => Boolean(url))
+      .map((url) => {
+        try {
+          const parsed = new URL(url);
+          parsed.hash = "";
+          parsed.search = "";
+          return parsed.toString().replace(/\/$/, "");
+        } catch {
+          return url;
+        }
+      });
+  }
+
+  function decisionForCandidate(candidate: Candidate) {
+    const direct = reviewDecisions[candidateKey(candidate)];
+    if (direct) return direct;
+
+    const currentUrls = new Set(candidateSourceUrls(candidate));
+    const currentIds = new Set(candidate.supporting_source_ids);
+
+    const matched = reviewRows.find((row) => {
+      const sameCompany =
+        row.company_name.trim().toLowerCase() ===
+        candidate.company_name.trim().toLowerCase();
+
+      const urlOverlap = row.supporting_source_urls.some((url) =>
+        currentUrls.has(url)
+      );
+
+      const legacyIdOverlap = row.supporting_source_ids.some((id) =>
+        currentIds.has(id)
+      );
+
+      return sameCompany && (urlOverlap || legacyIdOverlap);
+    });
+
+    return matched?.decision;
+  }
+
   async function saveDecision(
     candidate: Candidate,
     decision: "Approved" | "Dismissed"
@@ -280,6 +352,7 @@ export default function DiscoverPage() {
           why_it_matters: candidate.why_it_matters,
           recommended_next_action: candidate.recommended_next_action,
           supporting_source_ids: candidate.supporting_source_ids,
+          supporting_source_urls: candidateSourceUrls(candidate),
           decision,
           reviewed_at: new Date().toISOString(),
         },
@@ -292,6 +365,17 @@ export default function DiscoverPage() {
     }
 
     setReviewDecisions((current) => ({ ...current, [key]: decision }));
+    setReviewRows((current) => [
+      ...current.filter((row) => row.candidate_key !== key),
+      {
+        candidate_key: key,
+        company_name: candidate.company_name,
+        location: candidate.location,
+        supporting_source_ids: candidate.supporting_source_ids,
+        supporting_source_urls: candidateSourceUrls(candidate),
+        decision,
+      },
+    ]);
   }
 
   function evidenceLabel(source: DiscoveryResult) {
@@ -561,10 +645,10 @@ export default function DiscoverPage() {
                           </div>
 
                           <div className="mt-5 flex gap-3 border-t border-slate-100 pt-4">
-                            {reviewDecisions[candidateKey(candidate)] ? (
+                            {decisionForCandidate(candidate) ? (
                               <div className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
                                 <span className="text-sm font-bold text-slate-700">
-                                  {reviewDecisions[candidateKey(candidate)]}
+                                  {decisionForCandidate(candidate)}
                                 </span>
                                 <button
                                   type="button"
