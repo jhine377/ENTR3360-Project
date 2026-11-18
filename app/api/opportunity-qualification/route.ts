@@ -29,6 +29,14 @@ type Candidate = {
     | "Construction"
     | "Unknown";
   confidence: "Low" | "Medium" | "High";
+  project_status:
+    | "Active"
+    | "Early"
+    | "Deferred"
+    | "On Hold"
+    | "Completed"
+    | "Cancelled"
+    | "Unknown";
   trigger_type:
     | "Project announcement"
     | "Capital / funding"
@@ -57,6 +65,16 @@ const allowedConfidence = new Set<Candidate["confidence"]>([
   "Low",
   "Medium",
   "High",
+]);
+
+const allowedProjectStatus = new Set<Candidate["project_status"]>([
+  "Active",
+  "Early",
+  "Deferred",
+  "On Hold",
+  "Completed",
+  "Cancelled",
+  "Unknown",
 ]);
 
 const allowedTriggers = new Set<Candidate["trigger_type"]>([
@@ -141,6 +159,8 @@ function validateCandidates(
       !allowedStages.has(candidate.likely_stage) ||
       !candidate.confidence ||
       !allowedConfidence.has(candidate.confidence) ||
+      !candidate.project_status ||
+      !allowedProjectStatus.has(candidate.project_status) ||
       !candidate.trigger_type ||
       !allowedTriggers.has(candidate.trigger_type) ||
       sources.length === 0
@@ -157,6 +177,7 @@ function validateCandidates(
       project_type: candidate.project_type.trim(),
       likely_stage: candidate.likely_stage,
       confidence: candidate.confidence,
+      project_status: candidate.project_status,
       trigger_type: candidate.trigger_type,
       why_it_matters: candidate.why_it_matters.trim(),
       recommended_next_action: candidate.recommended_next_action.trim(),
@@ -207,6 +228,8 @@ Important:
 - Hiring activity can be a useful early signal, but it is weaker than a direct project announcement, regulatory record, capital disclosure, or engineering award unless corroborated.
 - Generic industry commentary is not a project opportunity by itself.
 - Prefer opportunities that appear early enough for an EPCM firm to influence or pursue.
+- Detect negative or late-stage status signals such as deferred, paused, on hold, cancelled, completed, or already too far into construction.
+- A deferred/on-hold/cancelled/completed project must NOT be framed as an active pursuit. The recommended next action should reflect monitoring, reactivation checks, or no action.
 - Merge multiple signals when they clearly refer to the same project.
 - Every candidate must cite at least one supplied source_id.
 - If the evidence does not support a real candidate, omit it.
@@ -225,6 +248,15 @@ Allowed confidence values:
 Low
 Medium
 High
+
+Allowed project_status values:
+Active
+Early
+Deferred
+On Hold
+Completed
+Cancelled
+Unknown
 
 Allowed trigger_type values:
 Project announcement
@@ -246,6 +278,7 @@ Return exactly this shape:
       "project_type": "string",
       "likely_stage": "allowed value",
       "confidence": "allowed value",
+      "project_status": "allowed value",
       "trigger_type": "allowed value",
       "why_it_matters": "1-2 concise sentences for BD",
       "recommended_next_action": "one concrete research or outreach action",
