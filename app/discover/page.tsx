@@ -180,7 +180,7 @@ export default function DiscoverPage() {
     loadReviewDecisions();
   }, [session?.user?.id]);
 
-  async function runDiscovery() {
+  async function runDiscovery(simulateFailure = false) {
     if (!session?.access_token) return;
 
     setLoading(true);
@@ -193,6 +193,9 @@ export default function DiscoverPage() {
         method: "POST",
         headers: {
           Authorization: `Bearer ${session.access_token}`,
+          ...(simulateFailure
+            ? { "x-assignment-failure": "serper" }
+            : {}),
         },
       });
 
@@ -218,7 +221,7 @@ export default function DiscoverPage() {
     }
   }
 
-  async function qualifyWithAI() {
+  async function qualifyWithAI(simulateFailure = false) {
     if (!session?.access_token || !data?.results.length) return;
 
     setQualifying(true);
@@ -230,6 +233,7 @@ export default function DiscoverPage() {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
+          ...(simulateFailure ? { "x-assignment-failure": "ai" } : {}),
         },
         body: JSON.stringify({ results: data.results }),
       });
@@ -469,9 +473,27 @@ export default function DiscoverPage() {
                   any candidate becomes a tracked opportunity.
                 </p>
               </div>
-              <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
-                API → AI → Human review
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => runDiscovery(true)}
+                  disabled={loading || qualifying || !session}
+                  className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                >
+                  Test API failure
+                </button>
+                <button
+                  type="button"
+                  onClick={() => qualifyWithAI(true)}
+                  disabled={!data || loading || qualifying}
+                  className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+                >
+                  Test AI failure
+                </button>
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+                  API → AI → Human review
+                </span>
+              </div>
             </div>
           </div>
 
