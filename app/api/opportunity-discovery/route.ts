@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 type SerperResult = {
@@ -60,7 +61,7 @@ function classifySource(result: SerperResult): DiscoveryResult["source_type"] {
     "career",
     "careers",
     "hiring",
-    "engineer",
+    "project engineer",
     "project manager",
     "construction manager",
     "project controls",
@@ -97,6 +98,37 @@ function classifySource(result: SerperResult): DiscoveryResult["source_type"] {
   }
 
   return "general_web";
+}
+
+async function requireUser(request: Request) {
+  const authHeader = request.headers.get("authorization");
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = authHeader.slice("Bearer ".length);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase server environment is not configured.");
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
+
+  if (error || !user) {
+    return null;
+  }
+
+  return user;
 }
 
 async function searchSerper(query: string) {
@@ -140,8 +172,17 @@ async function searchSerper(query: string) {
   }
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const user = await requireUser(request);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Please sign in to run live opportunity discovery." },
+        { status: 401 }
+      );
+    }
+
     const laneResponses = await Promise.all(
       discoveryLanes.map(async (lane) => {
         const data = await searchSerper(lane.query);
