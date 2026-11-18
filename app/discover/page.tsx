@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import RequireAuth from "@/components/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 type DiscoveryResult = {
   source_id: string;
@@ -41,6 +42,14 @@ type Candidate = {
     | "Construction"
     | "Unknown";
   confidence: "Low" | "Medium" | "High";
+  project_status:
+    | "Active"
+    | "Early"
+    | "Deferred"
+    | "On Hold"
+    | "Completed"
+    | "Cancelled"
+    | "Unknown";
   trigger_type:
     | "Project announcement"
     | "Capital / funding"
@@ -90,6 +99,16 @@ const confidenceClasses: Record<Candidate["confidence"], string> = {
   Low: "border-slate-200 bg-slate-100 text-slate-600",
 };
 
+const statusClasses: Record<Candidate["project_status"], string> = {
+  Active: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  Early: "border-blue-200 bg-blue-50 text-blue-700",
+  Deferred: "border-amber-200 bg-amber-50 text-amber-800",
+  "On Hold": "border-amber-200 bg-amber-50 text-amber-800",
+  Completed: "border-slate-200 bg-slate-100 text-slate-600",
+  Cancelled: "border-red-200 bg-red-50 text-red-700",
+  Unknown: "border-slate-200 bg-white text-slate-500",
+};
+
 export default function DiscoverPage() {
   const { session } = useAuth();
   const [data, setData] = useState<DiscoveryResponse | null>(null);
@@ -99,6 +118,8 @@ export default function DiscoverPage() {
   const [qualifying, setQualifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [reviewDecisions, setReviewDecisions] = useState<Record<string, "Approved" | "Dismissed">>({});
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   async function runDiscovery() {
     if (!session?.access_token) return;
@@ -193,6 +214,57 @@ export default function DiscoverPage() {
     }));
   }, [data]);
 
+  function candidateKey(candidate: Candidate) {
+    return [
+      candidate.project_name,
+      candidate.company_name,
+      candidate.location,
+    ]
+      .join("|")
+      .toLowerCase()
+      .replace(/[^a-z0-9|]+/g, "-");
+  }
+
+  async function saveDecision(
+    candidate: Candidate,
+    decision: "Approved" | "Dismissed"
+  ) {
+    if (!session?.user?.id) return;
+
+    setReviewError(null);
+    const key = candidateKey(candidate);
+
+    const { error } = await supabase
+      .from("discovery_candidate_reviews")
+      .upsert(
+        {
+          user_id: session.user.id,
+          candidate_key: key,
+          project_name: candidate.project_name,
+          company_name: candidate.company_name,
+          location: candidate.location,
+          project_type: candidate.project_type,
+          likely_stage: candidate.likely_stage,
+          project_status: candidate.project_status,
+          confidence: candidate.confidence,
+          trigger_type: candidate.trigger_type,
+          why_it_matters: candidate.why_it_matters,
+          recommended_next_action: candidate.recommended_next_action,
+          supporting_source_ids: candidate.supporting_source_ids,
+          decision,
+          reviewed_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,candidate_key" }
+      );
+
+    if (error) {
+      setReviewError(error.message);
+      return;
+    }
+
+    setReviewDecisions((current) => ({ ...current, [key]: decision }));
+  }
+
   const sourceById = useMemo(() => {
     return new Map((data?.results ?? []).map((item) => [item.source_id, item]));
   }, [data]);
@@ -279,6 +351,12 @@ export default function DiscoverPage() {
           {error && (
             <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
               <strong>Discovery unavailable:</strong> {error}
+            </div>
+          )}
+
+          {reviewError && (
+            <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+              <strong>Unable to save review decision:</strong> {reviewError}
             </div>
           )}
 
@@ -376,6 +454,9 @@ export default function DiscoverPage() {
                             <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
                               {candidate.trigger_type}
                             </span>
+                            <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${statusClasses[candidate.project_status]}`}>
+                              {candidate.project_status}
+                            </span>
                           </div>
 
                           <h3 className="mt-4 text-xl font-black text-slate-950">
@@ -437,18 +518,43 @@ export default function DiscoverPage() {
                           </div>
 
                           <div className="mt-5 flex gap-3 border-t border-slate-100 pt-4">
-                            <button
-                              type="button"
-                              className="flex-1 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white"
-                            >
-                              Review candidate
-                            </button>
-                            <button
-                              type="button"
-                              className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-600"
-                            >
-                              Dismiss
-                            </button>
+                            {reviewDecisions[candidateKey(candidate)] ? (
+                              <div className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                <span className="text-sm font-bold text-slate-700">
+                                  {reviewDecisions[candidateKey(candidate)]}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setReviewDecisions((current) => {
+                                      const next = { ...current };
+                                      delete next[candidateKey(candidate)];
+                                      return next;
+                                    })
+                                  }
+                                  className="text-xs font-bold text-blue-700"
+                                >
+                                  Change
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => saveDecision(candidate, "Approved")}
+                                  className="flex-1 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white"
+                                >
+                                  Approve candidate
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => saveDecision(candidate, "Dismissed")}
+                                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-600"
+                                >
+                                  Dismiss
+                                </button>
+                              </>
+                            )}
                           </div>
                         </article>
                       ))}
